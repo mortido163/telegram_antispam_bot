@@ -19,18 +19,14 @@ jobs:
   test:
     runs-on: ubuntu-latest
     
-    strategy:
-      matrix:
-        python-version: ["3.9", "3.10", "3.11"]
-    
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Set up Python ${{ matrix.python-version }}
+    - name: Set up Python 3.12
       uses: actions/setup-python@v4
       with:
-        python-version: ${{ matrix.python-version }}
+        python-version: "3.12"
         
     - name: Cache pip packages
       uses: actions/cache@v4
@@ -86,7 +82,7 @@ jobs:
     - name: Upload coverage reports as artifact
       uses: actions/upload-artifact@v4
       with:
-        name: coverage-report-${{ matrix.python-version }}
+        name: coverage-report
         path: htmlcov/
         
     - name: Check test results
@@ -105,7 +101,7 @@ jobs:
     - name: Set up Python for Security Analysis
       uses: actions/setup-python@v4
       with:
-        python-version: "3.11"
+        python-version: "3.12"
         
     - name: Install security scanning tools
       run: |
@@ -140,7 +136,7 @@ jobs:
     - name: Set up Python for Build Validation
       uses: actions/setup-python@v4
       with:
-        python-version: "3.11"
+        python-version: "3.12"
         
     - name: Install dependencies
       run: |
