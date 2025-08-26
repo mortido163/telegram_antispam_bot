@@ -9,8 +9,8 @@ on:
 env:
   # Переменные окружения для тестов
   BOT_TOKEN: "test_token_for_ci"
-  OWNER_ID: "123456789"
-  ADMIN_IDS: "123456789,987654321"
+  BOT_OWNER_ID: "123456789"
+  BOT_ADMIN_IDS: "123456789,987654321"
   DATABASE_URL: "sqlite:///test.db"
   ENVIRONMENT: "test"
   DEBUG: "true"
@@ -154,11 +154,11 @@ jobs:
         
     - name: Check import structure
       run: |
-        python -c "
+        cd src && python -c "
         try:
-            from src.main import main
-            from src.application.settings import get_config
-            from src.interfaces.telegram.bot import ModerationBot
+            from main import main
+            from application.settings import get_config
+            from interfaces.telegram.bot import ModerationBot
             print('✅ All main imports work correctly')
         except ImportError as e:
             print(f'❌ Import error: {e}')
@@ -167,12 +167,12 @@ jobs:
         
     - name: Validate configuration
       run: |
-        python -c "
+        cd src && python -c "
         import os
         os.environ['BOT_TOKEN'] = 'test'
-        os.environ['OWNER_ID'] = '123'
+        os.environ['BOT_OWNER_ID'] = '123'
         try:
-            from src.application.settings import get_config
+            from application.settings import get_config
             config = get_config()
             print(f'✅ Configuration loaded successfully')
             print(f'Environment: {config.environment}')

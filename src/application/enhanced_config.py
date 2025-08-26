@@ -5,8 +5,8 @@ from typing import List, Optional
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.infrastructure.database.models import ChatConfigModel
-from src.infrastructure.database.session import get_session_manager
+from infrastructure.database.models import ChatConfigModel
+from infrastructure.database.session import get_session_manager
 
 logger = logging.getLogger(__name__)
 
