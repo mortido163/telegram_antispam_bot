@@ -1,0 +1,26 @@
+# Docker Compose конфигурация для development
+services:
+  # Основной сервис бота (только для разработки)
+  telegram-bot:
+    build: .
+    container_name: telegram_antispam_bot_dev
+    restart: "no"
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=sqlite+aiosqlite:///app/data/bot.db
+      - ENVIRONMENT=development
+      - DEBUG=true
+      - LOG_LEVEL=DEBUG
+    volumes:
+      - ./src:/app/src
+      - ./data:/app/data
+      - ./logs:/app/logs
+    ports:
+      - "8000:8000"  # Для отладки и мониторинга
+    networks:
+      - telegram_bot_network
+
+networks:
+  telegram_bot_network:
+    driver: bridge

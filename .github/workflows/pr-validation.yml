@@ -1,0 +1,127 @@
+name: Pull Request Validation
+
+on:
+  pull_request:
+    branches: [ master ]
+    types: [opened, synchronize, reopened]
+
+env:
+  BOT_TOKEN: "test_token_for_pr"
+  OWNER_ID: "123456789"
+  ADMIN_IDS: "123456789"
+  DATABASE_URL: "sqlite:///test_pr.db"
+  ENVIRONMENT: "test"
+  DEBUG: "true"
+
+jobs:
+  pr-validation:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout PR code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.11
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest-cov pytest-asyncio pytest-mock
+        
+    - name: Run fast test suite
+      run: |
+        python -m pytest tests/ \
+          --cov=src \
+          --cov-report=term-missing \
+          --cov-fail-under=80 \
+          -x \
+          --tb=short \
+          --maxfail=3
+          
+    - name: Check code quality
+      run: |
+        pip install flake8 black isort
+        
+        # Проверка форматирования
+        black --check src tests || {
+          echo "❌ Code formatting issues found. Run 'black src tests' to fix."
+          exit 1
+        }
+        
+        # Проверка импортов
+        isort --check-only src tests || {
+          echo "❌ Import order issues found. Run 'isort src tests' to fix."
+          exit 1
+        }
+        
+        # Проверка линтера
+        flake8 src tests --max-line-length=127 --extend-ignore=E203,W503
+        
+    - name: Check for test coverage regression
+      run: |
+        python -m pytest tests/ --cov=src --cov-report=json
+        COVERAGE=$(python -c "import json; print(json.load(open('coverage.json'))['totals']['percent_covered'])")
+        echo "Current coverage: ${COVERAGE}%"
+        
+        if (( $(echo "$COVERAGE < 80" | bc -l) )); then
+          echo "❌ Coverage below 80%: ${COVERAGE}%"
+          exit 1
+        fi
+        
+        echo "✅ Coverage check passed: ${COVERAGE}%"
+        
+    - name: Validate new tests
+      run: |
+        # Проверяем, что добавлены тесты для новых файлов
+        git diff --name-only origin/master...HEAD | grep "^src/" | grep "\.py$" > new_src_files.txt || true
+        
+        if [ -s new_src_files.txt ]; then
+          echo "New source files detected:"
+          cat new_src_files.txt
+          
+          # Проверяем наличие соответствующих тестов
+          for file in $(cat new_src_files.txt); do
+            basename=$(basename "$file" .py)
+            if [ ! -f "tests/test_${basename}.py" ]; then
+              echo "⚠️  Warning: No test file found for $file"
+              echo "Consider adding tests/test_${basename}.py"
+            fi
+          done
+        fi
+        
+    - name: Comment PR with results
+      uses: actions/github-script@v6
+      if: always()
+      with:
+        script: |
+          const coverage = process.env.COVERAGE || 'N/A';
+          const status = '${{ job.status }}';
+          
+          const comment = status === 'success' 
+            ? `✅ **PR Validation Passed**
+              
+              - Tests: ✅ Passed
+              - Code Quality: ✅ Passed  
+              - Coverage: ${coverage}%
+              
+              Ready for review! 🚀`
+            : `❌ **PR Validation Failed**
+              
+              Please check the failed checks and fix the issues.
+              
+              - Review the Actions tab for detailed error information
+              - Ensure all tests pass
+              - Maintain code coverage above 80%`;
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });

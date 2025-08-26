@@ -1,0 +1,43 @@
+# Зависимости для разработки и тестирования
+-r requirements.txt
+
+# Тестирование
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0
+pytest-mock>=3.11.0
+pytest-xdist>=3.3.0
+pytest-html>=3.2.0
+pytest-json-report>=1.5.0
+coverage>=7.2.0
+factory-boy>=3.3.0
+freezegun>=1.2.0
+hypothesis>=6.82.0
+
+# Линтеры и форматеры
+black>=23.7.0
+isort>=5.12.0
+flake8>=6.0.0
+mypy>=1.5.0
+bandit>=1.7.0
+safety>=2.3.0
+
+# Типы для mypy
+types-python-dateutil>=2.8.0
+types-requests>=2.31.0
+
+# Инструменты разработки
+pre-commit>=3.3.0
+tox>=4.6.0
+httpx>=0.24.0  # Для тестирования HTTP запросов
+respx>=0.20.0  # Мокирование HTTP запросов
+faker>=19.3.0  # Генерация тестовых данных
+
+# Инструменты для CI/CD
+pip-audit>=2.6.0
+pipdeptree>=2.13.0
+pip-tools>=7.3.0
+
+# Инструменты анализа
+radon>=6.0.1  # Анализ сложности кода
+vulture>=2.9.1  # Поиск неиспользуемого кода

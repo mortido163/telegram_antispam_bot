@@ -1,0 +1,43 @@
+# Docker Compose override для отладки
+# Используйте: docker compose -f docker-compose.yml -f docker-compose.debug.yml up -d
+
+services:
+  # Временное открытие портов для отладки PostgreSQL
+  postgres:
+    ports:
+      - "5433:5432"  # Временный доступ
+    environment:
+      # Дополнительные настройки для отладки
+      POSTGRES_LOG_STATEMENT: all
+      POSTGRES_LOG_MIN_DURATION_STATEMENT: 0
+    
+  # Дополнительный контейнер с инструментами
+  postgres-admin:
+    image: dpage/pgadmin4:latest
+    container_name: telegram_bot_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "8080:80"
+    networks:
+      - telegram_bot_network
+    depends_on:
+      - postgres
+
+  # Контейнер с инструментами для работы с БД
+  db-tools:
+    build: 
+      context: .
+      dockerfile: tools/Dockerfile
+    container_name: telegram_bot_db_tools
+    environment:
+      PGPASSWORD: ${DB_PASSWORD:-change_this_password}
+    networks:
+      - telegram_bot_network
+    depends_on:
+      - postgres
+    volumes:
+      - ./scripts/db-tools:/tools
+    tty: true

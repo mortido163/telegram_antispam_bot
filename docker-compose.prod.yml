@@ -1,0 +1,18 @@
+# Production override - убираем все отладочные порты
+# Используйте: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+services:
+  postgres:
+    # Убираем ports секцию полностью для безопасности
+    ports: []
+    environment:
+      # Отключаем подробное логирование
+      POSTGRES_LOG_STATEMENT: 'none'
+      POSTGRES_LOG_MIN_DURATION_STATEMENT: -1
+    
+  # Убираем все отладочные сервисы
+  prometheus:
+    profiles: ["monitoring"]  # Запускать только при --profile monitoring
+    
+  grafana:
+    profiles: ["monitoring"]
