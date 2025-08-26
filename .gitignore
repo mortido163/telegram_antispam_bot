@@ -286,3 +286,4 @@ tramp
 *.db-journal
 *.db-wal
 *.db-shm
+# Branch rename completed
